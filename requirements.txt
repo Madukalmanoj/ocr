@@ -1,0 +1,12 @@
+streamlit
+torch
+torchvision
+opencv-python-headless
+numpy
+Pillow
+easyocr
+transformers
+huggingface-hub
+sentencepiece
+accelerate
+scipy
