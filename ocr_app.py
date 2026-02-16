@@ -1,7 +1,6 @@
 import streamlit as st
 import easyocr
 import cv2
-import json
 import numpy as np
 import torch
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
@@ -17,19 +16,20 @@ st.set_page_config(page_title="Advanced OCR System", layout="wide")
 st.title("📄 Advanced OCR System (EasyOCR + TrOCR)")
 
 # =====================================================
-# DEVICE
+# DEVICE (FORCE CPU FOR STREAMLIT CLOUD)
 # =====================================================
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-st.sidebar.write("Device:", device)
+device = torch.device("cpu")
+st.sidebar.success(f"Running on: {device}")
 
 # =====================================================
 # LOAD MODELS (Cached)
 # =====================================================
 
-@st.cache_resource
+@st.cache_resource(show_spinner=True)
 def load_models():
-    reader = easyocr.Reader(['en'], gpu=torch.cuda.is_available())
+
+    reader = easyocr.Reader(['en'], gpu=False)
 
     processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-printed")
     model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-printed")
@@ -126,7 +126,7 @@ def fuse_boxes(detections):
     return final
 
 # =====================================================
-# TROCR
+# TROCR (UNCHANGED)
 # =====================================================
 
 def recognize_trocr(crop):
@@ -289,13 +289,14 @@ if uploaded_file:
         cap = cv2.VideoCapture(tfile.name)
         stframe = st.empty()
 
+        st.warning("⚠ Video OCR on CPU will be slow.")
+
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
 
             output_frame, _ = extract_text_from_image(frame)
-
             stframe.image(output_frame, channels="RGB", width="stretch")
 
         cap.release()
